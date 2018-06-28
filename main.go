@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"sync"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	_ "github.com/heroku/x/hmetrics/onload"
@@ -17,6 +18,7 @@ type (
 	registryInfo struct {
 		Description []string
 		HostAddr    string
+		LastUpdate  time.Time
 	}
 
 	registry struct {
@@ -36,6 +38,7 @@ func handlePost(w http.ResponseWriter, req *http.Request) {
 
 	nfo := registryInfo{
 		HostAddr: req.RemoteAddr,
+		LastUpdate: time.Now(),
 	}
 	lines := bufio.NewScanner(req.Body)
 	for lines.Scan() {
