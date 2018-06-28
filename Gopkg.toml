@@ -35,5 +35,5 @@
 
 [metadata.heroku]
   root-package = "heroku-discovery"
-  go-version = "go1.9.2"
+  go-version = "go1.10.3"
   install = [ "./..." ]
