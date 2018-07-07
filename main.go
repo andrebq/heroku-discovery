@@ -78,6 +78,25 @@ func handleGet(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func handleList(w http.ResponseWriter, req *http.Request) {
+	theRegistry.Lock()
+	defer theRegistry.Unlock()
+	buf, err := json.Marshal(theRegistry.entries)
+
+	if err != nil {
+		logrus.WithError(err).Error("unable to list all entries")
+	}
+
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(buf)))
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(buf)
+	if err != nil {
+		logrus.WithError(err).Error("unable to send payload to user")
+	}
+}
+
 func secure(handler http.Handler, theUser, thePwd string) http.HandlerFunc {
 	// TODO(improve it - safe for current usage)
 	return func(w http.ResponseWriter, req *http.Request) {
@@ -93,7 +112,6 @@ func secure(handler http.Handler, theUser, thePwd string) http.HandlerFunc {
 		handler.ServeHTTP(w, req)
 	}
 }
-
 func main() {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 	port := os.Getenv("PORT")
@@ -115,6 +133,7 @@ func main() {
 	mux := http.NewServeMux()
 	// totally not RESTful, but this is just a hack
 	mux.HandleFunc("/add-services/", handlePost)
+	mux.HandleFunc("/services/list_all", handleList)
 	mux.HandleFunc("/services/", handleGet)
 
 	err := http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", port), secure(mux, theUser, thePwd))
